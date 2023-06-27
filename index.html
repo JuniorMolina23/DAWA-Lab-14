@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Carga de archivos</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container d-flex flex-column align-items-center justify-content-center min-vh-100">
+    <h1 class="mt-4">Carga de archivos</h1>
+    <form id="upload-form" enctype="multipart/form-data" class="mt-4">
+      <div class="mb-3">
+        <label for="file" class="form-label">Seleccionar archivos de imagen:</label>
+        <input type="file" name="files" id="file" accept="image/jpeg, application/pdf" class="form-control" multiple required />
+      </div>
+      <div class="mb-3 text-center">
+        <button type="submit" class="btn btn-primary">Cargar</button>
+      </div>
+    </form>
+
+    <div id="file-info"></div>
+  </div>
+
+  <script>
+    document.getElementById('upload-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const form = event.target;
+      const fileInfoDiv = document.getElementById('file-info');
+      fileInfoDiv.innerHTML = '';
+
+      const formData = new FormData(form);
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const fileInfos = await response.json();
+
+        fileInfos.forEach((fileInfo) => {
+          const fileDetails = document.createElement('div');
+          fileDetails.innerHTML = `
+            <p><strong>Nombre:</strong> ${fileInfo.filename}</p>
+            <p><strong>Nombre original:</strong> ${fileInfo.originalname}</p>
+            <p><strong>Tamaño:</strong> ${fileInfo.size} bytes</p>
+            <p><strong>Tipo MIME:</strong> ${fileInfo.mimetype}</p>
+            <hr>
+          `;
+          fileInfoDiv.appendChild(fileDetails);
+        });
+      } else {
+        const errorMessage = await response.text();
+        fileInfoDiv.innerHTML = `<p class="error">Error: ${errorMessage}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>
